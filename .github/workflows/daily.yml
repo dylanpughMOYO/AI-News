@@ -2,9 +2,9 @@ name: Daily AI digest
 
 on:
   schedule:
-    # 04:17 UTC = 06:17 South Africa time. Not on the hour on purpose: GitHub
+    # 20:17 UTC = 06:17 AEST (UTC+10) the next morning. Not on the hour on purpose: GitHub
     # drops or delays scheduled runs at :00 when its queue is overloaded.
-    - cron: "17 4 * * *"
+    - cron: "17 20 * * *"
   workflow_dispatch: {}    # lets you press "Run workflow" to test
 
 jobs:
@@ -21,4 +21,4 @@ jobs:
         env:
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
-          DIGEST_TO: dtpugh026@gmail.com
+          DIGEST_TO: dylan.pugh@moyo.co
