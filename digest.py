@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Daily AI news digest. No AI model involved: public APIs + RSS feeds,
-keyword filtering, ranking by popularity, and an HTML email via Gmail SMTP.
+keyword filtering, ranking by popularity, and an HTML email sent via Resend.
 
 Sections:
   Big News            Hacker News stories about AI, ranked by points
@@ -13,20 +13,17 @@ Usage:
   python digest.py               # sends the email (needs env vars below)
 
 Env vars for sending:
-  GMAIL_USER          the Gmail address that sends
-  GMAIL_APP_PASSWORD  a Gmail *app password* (not your normal password)
-  DIGEST_TO           recipient, defaults to GMAIL_USER
+  RESEND_API_KEY      API key from resend.com
+  DIGEST_TO           recipient address
+  DIGEST_FROM         optional sender, defaults to onboarding@resend.dev
 """
 import argparse
 import html
 import os
 import re
-import smtplib
 import sys
 import time
 from datetime import datetime, timedelta, timezone
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 from urllib.parse import urlparse
 
 import feedparser
@@ -306,16 +303,18 @@ def render(sections, blogs):
 
 
 def send(subject, body_html):
-    user = os.environ["GMAIL_USER"]
-    pw = os.environ["GMAIL_APP_PASSWORD"]
-    to = os.environ.get("DIGEST_TO", user)
-    msg = MIMEMultipart("alternative")
-    msg["Subject"], msg["From"], msg["To"] = subject, user, to
-    msg.attach(MIMEText("Open this email in an HTML-capable client.", "plain"))
-    msg.attach(MIMEText(body_html, "html"))
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as s:
-        s.login(user, pw)
-        s.sendmail(user, [to], msg.as_string())
+    """Send through the Resend HTTP API (https://resend.com)."""
+    key = os.environ["RESEND_API_KEY"]
+    to = os.environ["DIGEST_TO"]
+    sender = os.environ.get("DIGEST_FROM", "AI Digest <onboarding@resend.dev>")
+    r = requests.post(
+        "https://api.resend.com/emails",
+        headers={"Authorization": f"Bearer {key}"},
+        json={"from": sender, "to": [to], "subject": subject, "html": body_html},
+        timeout=30,
+    )
+    if not r.ok:
+        sys.exit(f"Resend error {r.status_code}: {r.text}")
 
 
 def main():

@@ -19,6 +19,5 @@ jobs:
       - run: pip install -r requirements.txt
       - run: python digest.py
         env:
-          GMAIL_USER: ${{ secrets.GMAIL_USER }}
-          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           DIGEST_TO: dylan.pugh@moyo.co
